@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Virtual</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <h1>Asistente Virtual</h1>
+    <div id="chat-container">
+        <div id="chat-box">
+            <!-- Aquí se mostrarán los mensajes -->
+        </div>
+        <div id="user-input-container">
+            <textarea id="user-input" placeholder="Escribe tu mensaje aquí..."></textarea>
+            <button id="send-button" onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const userInput = document.getElementById("user-input");
+    
+        // Manejar envío con Enter y salto de línea con Shift+Enter
+        userInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                if (!event.shiftKey) {
+                    event.preventDefault(); // Evita el salto de línea
+                    sendMessage();
+                }
+            }
+        });
+    
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+    
+            if (userMessage === "") return;
+    
+            // Mostrar el mensaje del usuario en el chat
+            addMessageToChat("user-message", userMessage);
+            
+            // Limpiar el campo de texto del usuario
+            userInput.value = "";
+    
+            // Enviar el mensaje a la API
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userMessage }),
+            });
+    
+            const data = await response.json();
+    
+            if (data.response) {
+                // Mostrar la respuesta del asistente en el chat
+                addMessageToChat("assistant-message", data.response);
+            } else {
+                addMessageToChat("assistant-message", "Error: " + data.error);
+            }
+    
+            
+        }
+    
+        function addMessageToChat(className, message) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `chat-message ${className}`;
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+    
+            // Hacer scroll automático al final del chat
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
